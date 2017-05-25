@@ -39,10 +39,8 @@ SequenceOfUint16 ::= SEQUENCE OF Uint16
 Opaque ::= OCTET STRING
 
   
-HashedId32 ::= OCTET STRING (SIZE(32))
 HashedId10 ::= OCTET STRING (SIZE(10))
 HashedId8  ::= OCTET STRING (SIZE(8))
-HashedId4  ::= OCTET STRING (SIZE(4))
 HashedId3  ::= OCTET STRING (SIZE(3))
 SequenceOfHashedId3 ::= SEQUENCE OF HashedId3
 
@@ -191,22 +189,22 @@ EccP256CurvePoint ::= CHOICE  {
     fill             NULL,  -- consistency with 1363 / X9.62
     compressed-y-0   OCTET STRING (SIZE (32)),
     compressed-y-1   OCTET STRING (SIZE (32)),
-    uncompressed     SEQUENCE  {
+    uncompressedP256 SEQUENCE  {
         x OCTET STRING (SIZE (32)),
         y OCTET STRING (SIZE (32))
     }
 }
 
-  EccP384CurvePoint::= CHOICE  {
-      x-only          OCTET STRING (SIZE (48)),
-      fill            NULL, -- consistency w 1363 / X9.62
-      compressed-y-0  OCTET STRING (SIZE (48)),
-      compressed-y-1  OCTET STRING (SIZE (48)),
-      uncompressed    SEQUENCE  {
-          x OCTET STRING (SIZE (48)),
-          y OCTET STRING (SIZE (48))
-      }
-  }
+EccP384CurvePoint::= CHOICE  {
+    x-only           OCTET STRING (SIZE (48)),
+    fill             NULL, -- consistency w 1363 / X9.62
+    compressed-y-0   OCTET STRING (SIZE (48)),
+    compressed-y-1   OCTET STRING (SIZE (48)),
+    uncompressedP384 SEQUENCE  {
+        x OCTET STRING (SIZE (48)),
+        y OCTET STRING (SIZE (48))
+    }
+}
 
 
 SymmAlgorithm ::= ENUMERATED  { 
@@ -275,17 +273,10 @@ SequenceOfPsid ::= SEQUENCE OF Psid
 ServiceSpecificPermissions ::= CHOICE  {
     opaque              OCTET STRING (SIZE(0..MAX)),
     ...,
-    bitmapSsp           BitmapSsp,
-    indexedSsp          IndexedSsp
+    bitmapSsp           BitmapSsp
 }
 
 BitmapSsp ::= OCTET STRING (SIZE(0..31))
-
-IndexedSsp ::= OCTET STRING -- To be provided later
-
-SspValue ::= OCTET STRING (SIZE(0..31))
-
-SspBitmask ::= OCTET STRING (SIZE(0..31))
 
 PsidSspRange ::= SEQUENCE  {
     psid                Psid,
@@ -298,8 +289,7 @@ SspRange ::= CHOICE  {
     opaque              SequenceOfOctetString,
     all                 NULL,
     ... ,
-    bitmapSspRange      BitmapSspRange,
-    indexedSspRange     IndexedSspRange
+    bitmapSspRange      BitmapSspRange
 }
    
 BitmapSspRange ::= SEQUENCE  {

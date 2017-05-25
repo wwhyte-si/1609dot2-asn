@@ -1,0 +1,28 @@
+value1 TestCertificate ::= {
+  version 3,
+  type implicit,
+  issuer sha256AndDigest : '0101010101010101'H,
+  toBeSigned {
+    id linkageData : {
+      iCert 2,
+      linkage-value '030303030303030303'H
+    },
+    cracaId '040404'H,
+    crlSeries 5,
+    validityPeriod {
+      start 101058054,
+      duration hours : 169
+    },
+    region identifiedRegion : {
+      countryOnly : 124,
+      countryOnly : 484,
+      countryOnly : 840
+    },
+    appPermissions {
+      {
+        psid 32
+      }
+    },
+    verifyKeyIndicator reconstructionValue : compressed-y-1 : '0808080808080808080808080808080808080808080808080808080808080808'H
+  }
+}

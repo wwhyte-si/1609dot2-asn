@@ -22,7 +22,6 @@ IMPORTS
   HashAlgorithm,
   HashedId3,
   HashedId8,
-  HashedId32,
   Hostname,
   IValue,
   LinkageValue,
@@ -58,6 +57,10 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 --  Structures for describing secured data
 -- 
 --*********************************************************************  
+
+-- Necessary to get certain tools to generate sample PDUs
+-- TestIeee1609Dot2Data ::= Ieee1609Dot2Data
+-- TestCertificate ::= Certificate
 
 -- this structure belongs later in the file but putting it here avoids
 -- compiler errors with certain tools
@@ -279,7 +282,7 @@ LinkageData ::= SEQUENCE  {
     group-linkage-value   GroupLinkageValue OPTIONAL
 }
          
-EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8))
+EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8)) (ALL EXCEPT {})
 
 PsidGroupPermissions ::= SEQUENCE  {
     subjectPermissions SubjectPermissions,
