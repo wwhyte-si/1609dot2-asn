@@ -297,8 +297,6 @@ BitmapSspRange ::= SEQUENCE  {
     sspBitmask          OCTET STRING (SIZE(1..32))
 }
 
-IndexedSspRange ::= OCTET STRING -- To be provided later
-
 SequenceOfOctetString ::= SEQUENCE (SIZE (0..MAX)) OF 
     OCTET STRING (SIZE(0..MAX))
 
