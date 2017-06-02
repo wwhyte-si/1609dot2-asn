@@ -26,7 +26,7 @@ FROM IEEE1609dot2CrlBaseTypes {iso(1) identified-organization(3) ieee(111)
 
 ;
 
-CrlPsid ::= Psid(256) -- PSID = 0x100, WW: this may need to change, just a placeholder
+CrlPsid ::= Psid(256) -- PSID = 0x100, 0p8080
 
 SecuredCrl ::= Ieee1609Dot2Data (WITH COMPONENTS {..., 
   content (WITH COMPONENTS {
