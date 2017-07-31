@@ -2,6 +2,8 @@ IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 standards-association-numbered-series-standards(2) wave-stds(1609)  
 dot2(2) base(1) base-types(2) major-version-2(2)}
 
+-- Minor version: 1
+
 -- 
 --********************************************************************
 --  IEEE P1609.2 Base Data Types 
