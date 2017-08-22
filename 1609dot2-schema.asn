@@ -6,7 +6,6 @@ dot2(2) base (1) schema (1) major-version-2(2)}
 -- change since minor version 1:
 -- extend HeaderInfo to support P2PCD for electors and root CA certs
 
-
 --******************************************************************************
 -- 
 -- IEEE P1609.2 Data Types 
@@ -53,7 +52,7 @@ IMPORTS
   ValidityPeriod
 FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
-    dot2(2) base(1) base-types(2)  major-version-2 (2)}
+    dot2(2) base(1) base-types(2) major-version-2(2)}
 
 ;
 
@@ -150,27 +149,6 @@ ElectorLearningRequest ::= SEQUENCE {
     receivedEndorsements SEQUENCE OF ElectorId,
     ...
 }
-
-Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
-  content (WITH COMPONENTS {..., 
-    signedData  (WITH COMPONENTS {..., 
-      tbsData (WITH COMPONENTS {..., 
-        payload (WITH COMPONENTS {..., 
-          data ABSENT,
-          extDataHash PRESENT
-        }),
-        headerInfo(WITH COMPONENTS {..., 
-          generationTime PRESENT,
-          expiryTime ABSENT,
-          generationLocation ABSENT,
-          p2pcdLearningRequest ABSENT,
-          missingCrlIdentifier ABSENT,
-          encryptionKey ABSENT
-        })
-      })
-    })
-  })
-})
 
 --********************************************************************** 
 -- 
@@ -328,5 +306,26 @@ VerificationKeyIndicator ::= CHOICE  {
     ...
 }
   
+Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
+  content (WITH COMPONENTS {..., 
+    signedData  (WITH COMPONENTS {..., 
+      tbsData (WITH COMPONENTS {..., 
+        payload (WITH COMPONENTS {..., 
+          data ABSENT,
+          extDataHash PRESENT
+        }),
+        headerInfo(WITH COMPONENTS {..., 
+          generationTime PRESENT,
+          expiryTime ABSENT,
+          generationLocation ABSENT,
+          p2pcdLearningRequest ABSENT,
+          missingCrlIdentifier ABSENT,
+          encryptionKey ABSENT
+        })
+      })
+    })
+  })
+})
+
 END
 

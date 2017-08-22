@@ -33,21 +33,20 @@ Uint64 ::= INTEGER (0..18446744073709551615) -- (hex) ff ff ff ff ff ff ff ff
 SequenceOfUint8  ::= SEQUENCE OF Uint8
 SequenceOfUint16 ::= SEQUENCE OF Uint16
 
+
 -- ------------------------------------------------------------------
 -- 
 -- OCTET STRING types
 --
 -- ------------------------------------------------------------------
 
-
-Opaque ::= OCTET STRING
-
-HashedId32 ::= OCTET STRING(SIZE(32))  
+HashedId32 ::= OCTET STRING (SIZE(32))  
 HashedId10 ::= OCTET STRING (SIZE(10))
 HashedId8  ::= OCTET STRING (SIZE(8))
 HashedId3  ::= OCTET STRING (SIZE(3))
 SequenceOfHashedId3 ::= SEQUENCE OF HashedId3
 
+Opaque ::= OCTET STRING
 
 -- ------------------------------------------------------------------
 -- 

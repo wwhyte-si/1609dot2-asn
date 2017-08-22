@@ -1,0 +1,50 @@
+Elector-P2PCD-Temp {iso(1) identified-organization(3) ieee(111) 
+standards-association-numbered-series-standards(2) wave-stds(1609)  
+dot2(2) management(2) elector-p2pcd(2) major-version-1(1)}
+
+DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+EXPORTS ALL;
+
+IMPORTS
+  Certificate,
+  ExplicitCertificate,
+  Ieee1609Dot2Data
+FROM IEEE1609dot2 {iso(1) identified-organization(3) ieee(111) 
+standards-association-numbered-series-standards(2) wave-stds(1609)  
+dot2(2) base(1) schema(1) major-version-2(2)}
+
+  ElectorId,
+  HashedId32,
+  Psid,
+  Time64,
+  Uint8
+FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
+standards-association-numbered-series-standards(2) wave-stds(1609)  
+dot2(2) base(1) base-types(2) major-version-2(2)}
+
+  ElectorBallot
+FROM Ieee1609Dot2ScmsComponentCertificateManagement {iso(1)
+identified-organization(3) ieee(111)
+standards-association-numbered-series-standards(2) wave-stds(1609) dot2(2)
+scms(4) interfaces(1) component-certificate-management(3) major-version-2(2)}
+
+;
+
+RootCaLearningResponse ::= SEQUENCE {
+    ballot                  ElectorBallot,
+    additionalEndorsements  SEQUENCE(SIZE(0..MAX)) OF ElectorId,
+    additionalElectors      SEQUENCE(SIZE(0..MAX)) OF ElectorId,
+    ...
+}
+
+
+ElectorLearningResponse ::= SEQUENCE {
+    ballot                  ElectorBallot,
+    additionalEndorsements  SEQUENCE(SIZE(0..MAX)) OF ElectorId,
+    additionalElectors      SEQUENCE(SIZE(0..MAX)) OF ElectorId,
+    ...
+}
+
+
+END
