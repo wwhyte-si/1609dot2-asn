@@ -1,4 +1,4 @@
-<OssGuiProject product="ASN.1 Studio" version="2.0" productVersion="7.1">
+<OssGuiProject version="2.0" product="ASN.1 Studio" productVersion="8.0">
  <Asn1Files>
   <File>1609dot2-base-types.asn</File>
   <File>1609dot2-schema.asn</File>
@@ -7,6 +7,8 @@
   <File>wsa-ssp.asn</File>
   <File>crl-ssp.asn</File>
   <File>crl-protocol.asn</File>
+  <File>1609dot2-P2P-Elector.asn</File>
+  <File>elector-temp.asn</File>
  </Asn1Files>
  <CompilerSettings/>
  <EncodingFiles>
@@ -14,7 +16,7 @@
  </EncodingFiles>
  <Settings>
   <Setting name="-coer"/>
-  <Setting present="false" name="-noRelaxedMode"/>
+  <Setting name="-noRelaxedMode" present="false"/>
   <Setting name="-oer"/>
   <Setting name="-root"/>
   <Setting name="AUTOMATIC_ENCDEC"/>
