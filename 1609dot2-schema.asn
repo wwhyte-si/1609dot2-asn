@@ -1,8 +1,11 @@
---<OSS.PDU IEEE1609dot2.Ieee1609Dot2Data>--
-
 IEEE1609dot2 {iso(1) identified-organization(3) ieee(111) 
 standards-association-numbered-series-standards(2) wave-stds(1609)  
-dot2(2) base (1) schema (1)}
+dot2(2) base (1) schema (1) major-version-2(2)}
+
+-- minor version 2
+-- change since minor version 1:
+-- extend HeaderInfo to support P2PCD for electors and root CA certs
+
 
 --******************************************************************************
 -- 
@@ -10,7 +13,7 @@ dot2(2) base (1) schema (1)}
 -- 
 --******************************************************************************
 
- DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
  
 EXPORTS ALL;
 
@@ -18,13 +21,13 @@ IMPORTS
   CrlSeries,
   EccP256CurvePoint,
   EciesP256EncryptedKey,
+  ElectorId,
   EncryptionKey,
   GeographicRegion,
   GroupLinkageValue,
   HashAlgorithm,
   HashedId3,
   HashedId8,
-  HashedId32,
   Hostname,
   IValue,
   LinkageValue,
@@ -34,6 +37,7 @@ IMPORTS
   PsidSspRange,
   PublicEncryptionKey,
   PublicVerificationKey,
+  SequenceOfHashedId3,
   SequenceOfPsidSsp,
   SequenceOfPsidSspRange,
   ServiceSpecificPermissions,
@@ -49,7 +53,7 @@ IMPORTS
   ValidityPeriod
 FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
-    dot2(2) base(1) base-types(2)}
+    dot2(2) base(1) base-types(2)  major-version-2 (2)}
 
 ;
 
@@ -60,90 +64,113 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 -- 
 --*********************************************************************  
 
-  -- this structure belongs later in the file but putting it here avoids
-  -- compiler errors with certain tools
-  SignedDataPayload ::= SEQUENCE  { 
-      data              Ieee1609Dot2Data OPTIONAL,
-      extDataHash       HashedData OPTIONAL,
-      ...
-  }
-      (WITH COMPONENTS {..., data PRESENT} |
-       WITH COMPONENTS {..., extDataHash PRESENT})
+-- Necessary to get certain tools to generate sample PDUs
+-- TestIeee1609Dot2Data ::= Ieee1609Dot2Data
+-- TestCertificate ::= Certificate
 
-  Ieee1609Dot2Data ::= SEQUENCE {
+-- this structure belongs later in the file but putting it here avoids
+-- compiler errors with certain tools
+SignedDataPayload ::= SEQUENCE  { 
+    data              Ieee1609Dot2Data OPTIONAL,
+    extDataHash       HashedData OPTIONAL,
+    ...
+}
+    (WITH COMPONENTS {..., data PRESENT} |
+     WITH COMPONENTS {..., extDataHash PRESENT})
+
+Ieee1609Dot2Data ::= SEQUENCE  {
     protocolVersion    Uint8(3),
     content            Ieee1609Dot2Content
-  }
+}
 
-  Ieee1609Dot2Content ::=  CHOICE  { 
+Ieee1609Dot2Content ::=  CHOICE  { 
     unsecuredData            Opaque, 
     signedData               SignedData,
     encryptedData            EncryptedData,
     signedCertificateRequest Opaque,
     ...
-  }
+}
 
-  SignedData ::= SEQUENCE  { 
+SignedData ::= SEQUENCE  { 
     hashId          HashAlgorithm,
     tbsData         ToBeSignedData,
     signer          SignerIdentifier,
     signature       Signature
-  }
+}
 
-  SignerIdentifier ::= CHOICE    { 
+SignerIdentifier ::= CHOICE  { 
     digest          HashedId8,
     certificate     SequenceOfCertificate,
     self            NULL,
     ...
-  }
+}
 
-  ToBeSignedData ::= SEQUENCE  { 
+ToBeSignedData ::= SEQUENCE  { 
     payload         SignedDataPayload,
     headerInfo      HeaderInfo
-  }
+}
 
-  HashedData::= CHOICE { 
-      sha256HashedData  OCTET STRING (SIZE(32)),
-      ...
-  }
+HashedData::= CHOICE  { 
+    sha256HashedData  OCTET STRING (SIZE(32)),
+    ...
+}
 
-  HeaderInfo ::= SEQUENCE  { 
-      psid                   Psid,
-      generationTime         Time64 OPTIONAL,
-      expiryTime             Time64  OPTIONAL,
-      generationLocation     ThreeDLocation OPTIONAL,
-      p2pcdLearningRequest   HashedId3 OPTIONAL,
-      missingCrlIdentifier   MissingCrlIdentifier OPTIONAL,
-      encryptionKey          EncryptionKey OPTIONAL,
-      ...
-  }
+HeaderInfo ::= SEQUENCE  { 
+    psid                   Psid,
+    generationTime         Time64 OPTIONAL,
+    expiryTime             Time64  OPTIONAL,
+    generationLocation     ThreeDLocation OPTIONAL,
+    p2pcdLearningRequest   HashedId3 OPTIONAL,
+    missingCrlIdentifier   MissingCrlIdentifier OPTIONAL,
+    encryptionKey          EncryptionKey OPTIONAL,
+    ...,
+    inlineP2pcdRequest     SequenceOfHashedId3 OPTIONAL,
+    requestedCertificate   Certificate OPTIONAL,
+    rootCaLearningRequest  RootCaLearningRequest OPTIONAL,
+    electorLearningRequest ElectorLearningRequest OPTIONAL,
+    newElector             ElectorId OPTIONAL
+}
 
-  MissingCrlIdentifier ::=                  
-        SEQUENCE  { cracaId         HashedId3,
-                    crlSeries       CrlSeries,
-                    ...
-                  }
+MissingCrlIdentifier ::= SEQUENCE  {
+    cracaId         HashedId3,
+    crlSeries       CrlSeries,
+    ...
+}
 
-  Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
-    content (WITH COMPONENTS {..., 
-      signedData  (WITH COMPONENTS {..., 
-        tbsData (WITH COMPONENTS {..., 
-          payload (WITH COMPONENTS {..., 
-            data ABSENT,
-            extDataHash PRESENT
-          }),
-          headerInfo(WITH COMPONENTS {..., 
-            generationTime PRESENT,
-            expiryTime ABSENT,
-            generationLocation ABSENT,
-            p2pcdLearningRequest ABSENT,
-            missingCrlIdentifier ABSENT,
-            encryptionKey ABSENT
-          })
+RootCaLearningRequest ::= SEQUENCE {
+    id                   HashedId8,
+    knownElectors        SEQUENCE OF ElectorId,
+    receivedEndorsements SEQUENCE OF ElectorId,
+    ...
+}
+
+ElectorLearningRequest ::= SEQUENCE {
+    id                   ElectorId,
+    knownElectors        SEQUENCE OF ElectorId,
+    receivedEndorsements SEQUENCE OF ElectorId,
+    ...
+}
+
+Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
+  content (WITH COMPONENTS {..., 
+    signedData  (WITH COMPONENTS {..., 
+      tbsData (WITH COMPONENTS {..., 
+        payload (WITH COMPONENTS {..., 
+          data ABSENT,
+          extDataHash PRESENT
+        }),
+        headerInfo(WITH COMPONENTS {..., 
+          generationTime PRESENT,
+          expiryTime ABSENT,
+          generationLocation ABSENT,
+          p2pcdLearningRequest ABSENT,
+          missingCrlIdentifier ABSENT,
+          encryptionKey ABSENT
         })
       })
     })
   })
+})
 
 --********************************************************************** 
 -- 
@@ -152,53 +179,51 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 --**********************************************************************  
 
 
-  EncryptedData ::=
-        SEQUENCE  { recipients     SequenceOfRecipientInfo,
-                    ciphertext     SymmetricCiphertext
-                  }
+EncryptedData ::= SEQUENCE  {
+    recipients     SequenceOfRecipientInfo,
+    ciphertext     SymmetricCiphertext
+}
+RecipientInfo ::= CHOICE  {
+    pskRecipInfo        PreSharedKeyRecipientInfo,
+    symmRecipInfo       SymmRecipientInfo,
+    certRecipInfo       PKRecipientInfo, 
+    signedDataRecipInfo PKRecipientInfo, 
+    rekRecipInfo        PKRecipientInfo 
+}
 
-  RecipientInfo ::=
-        CHOICE    { pskRecipInfo        PreSharedKeyRecipientInfo,
-                    symmRecipInfo       SymmRecipientInfo,
-                    certRecipInfo       PKRecipientInfo, 
-                    signedDataRecipInfo PKRecipientInfo, 
-                    rekRecipInfo        PKRecipientInfo 
-                  }
-
-  SequenceOfRecipientInfo ::= SEQUENCE OF RecipientInfo
-         
-  PreSharedKeyRecipientInfo ::= HashedId8
-  SymmRecipientInfo ::= SEQUENCE  { 
+SequenceOfRecipientInfo ::= SEQUENCE OF RecipientInfo
+       
+PreSharedKeyRecipientInfo ::= HashedId8
+SymmRecipientInfo ::= SEQUENCE  { 
     recipientId        HashedId8, 
     encKey             SymmetricCiphertext
-  }
+}
 
-  PKRecipientInfo ::= SEQUENCE  { 
+PKRecipientInfo ::= SEQUENCE  { 
     recipientId        HashedId8, 
     encKey             EncryptedDataEncryptionKey
-  }
+}
 
-  EncryptedDataEncryptionKey ::= CHOICE  { 
-       eciesNistP256          EciesP256EncryptedKey,
-       eciesBrainpoolP256r1   EciesP256EncryptedKey,
-       ...
-  }
-  SymmetricCiphertext ::=
-        CHOICE  { aes128ccm           AesCcmCiphertext,
-                  ...
-                 }
+EncryptedDataEncryptionKey ::= CHOICE  { 
+    eciesNistP256          EciesP256EncryptedKey,
+    eciesBrainpoolP256r1   EciesP256EncryptedKey,
+    ...
+}
 
-  AesCcmCiphertext ::=
-        SEQUENCE  { nonce           OCTET STRING (SIZE (12)),
-                    ccmCiphertext   Opaque -- 16 bytes longer than plaintext
-                  }
+SymmetricCiphertext ::= CHOICE  {
+    aes128ccm           AesCcmCiphertext,
+    ...
+}
+
+AesCcmCiphertext ::= SEQUENCE  {
+    nonce           OCTET STRING (SIZE (12)),
+    ccmCiphertext   Opaque -- 16 bytes longer than plaintext
+}
 
 
 --********************************************************************** 
 -- 
 --  Certificates and other security management data structures
---  Based more on 103 097 than 1609.2 but with WSA certs and implicit certs
---  supported
 -- 
 --********************************************************************** 
 
@@ -206,47 +231,48 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 -- reconstruction value, signature absent) or explicit (type = explicit,
 -- toBeSigned includes verification key, signature present).
 
-  Certificate ::= CertificateBase (ImplicitCertificate | ExplicitCertificate)
+Certificate ::= CertificateBase (ImplicitCertificate | ExplicitCertificate)
 
-  SequenceOfCertificate ::= SEQUENCE OF Certificate
+SequenceOfCertificate ::= SEQUENCE OF Certificate
 
-  CertificateBase ::=
-        SEQUENCE  { version                 Uint8(3),
-                    type                    CertificateType,
-                    issuer                  IssuerIdentifier,
-                    toBeSigned              ToBeSignedCertificate,
-                    signature               Signature OPTIONAL
-                  }
+CertificateBase ::= SEQUENCE  {
+    version                 Uint8(3),
+    type                    CertificateType,
+    issuer                  IssuerIdentifier,
+    toBeSigned              ToBeSignedCertificate,
+    signature               Signature OPTIONAL
+}
   
-  CertificateType  ::= ENUMERATED {
-      explicit,
-      implicit,
-      ...
-  }
+CertificateType  ::= ENUMERATED  {
+    explicit,
+    implicit,
+    ...
+}
 
-  ImplicitCertificate ::= CertificateBase (WITH COMPONENTS {...,
-      type(implicit),
-      toBeSigned(WITH COMPONENTS {..., 
-          verifyKeyIndicator(WITH COMPONENTS {reconstructionValue})
-      }), 
-      signature ABSENT
-  })
+ImplicitCertificate ::= CertificateBase (WITH COMPONENTS {...,
+    type(implicit),
+    toBeSigned(WITH COMPONENTS {..., 
+      verifyKeyIndicator(WITH COMPONENTS {reconstructionValue})
+    }), 
+    signature ABSENT
+    })
 
-  ExplicitCertificate ::= CertificateBase (WITH COMPONENTS {...,
-      type(explicit),
-      toBeSigned(WITH COMPONENTS {..., 
-          verifyKeyIndicator(WITH COMPONENTS {verificationKey})
-      }), 
-      signature PRESENT
-  })
+ExplicitCertificate ::= CertificateBase (WITH COMPONENTS {...,
+    type(explicit),
+    toBeSigned(WITH COMPONENTS {..., 
+        verifyKeyIndicator(WITH COMPONENTS {verificationKey})
+    }), 
+    signature PRESENT
+    })
 
-  IssuerIdentifier ::= CHOICE  { 
+IssuerIdentifier ::= CHOICE  { 
     sha256AndDigest         HashedId8,
     self                    HashAlgorithm,
-    ...
-  }
+    ...,
+    sha384AndDigest         HashedId8
+}
 
-  ToBeSignedCertificate ::= SEQUENCE  { 
+ToBeSignedCertificate ::= SEQUENCE  { 
     id                     CertificateId,
     cracaId                HashedId3,
     crlSeries              CrlSeries,
@@ -260,49 +286,47 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
     encryptionKey          PublicEncryptionKey OPTIONAL,
     verifyKeyIndicator     VerificationKeyIndicator,
     ...
-  }
-  (WITH COMPONENTS { ..., appPermissions PRESENT} |
-   WITH COMPONENTS { ..., certIssuePermissions PRESENT} |
-   WITH COMPONENTS { ..., certRequestPermissions PRESENT})
+}
+(WITH COMPONENTS { ..., appPermissions PRESENT} |
+ WITH COMPONENTS { ..., certIssuePermissions PRESENT} |
+ WITH COMPONENTS { ..., certRequestPermissions PRESENT})
 
-   CertificateId ::= CHOICE {
-        linkageData             LinkageData,
-        name                    Hostname,
-        binaryId                OCTET STRING(SIZE(1..64)),
-        none                    NULL,
-        ...
-    }
+CertificateId ::= CHOICE  {
+    linkageData             LinkageData,
+    name                    Hostname,
+    binaryId                OCTET STRING(SIZE(1..64)),
+    none                    NULL,
+    ...
+}
 
-  LinkageData ::= 
-        SEQUENCE  { iCert                 IValue,
-                    linkage-value         LinkageValue, 
-                    group-linkage-value   GroupLinkageValue OPTIONAL
-                  }
+LinkageData ::= SEQUENCE  {
+    iCert                 IValue,
+    linkage-value         LinkageValue, 
+    group-linkage-value   GroupLinkageValue OPTIONAL
+}
          
-  EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8))
+EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8)) (ALL EXCEPT {})
 
-  PsidGroupPermissions ::= SEQUENCE {
-      subjectPermissions SubjectPermissions,
-      minChainDepth      INTEGER DEFAULT 1, -- 0 for enrolment certs
-      chainDepthRange    INTEGER DEFAULT 0, -- max depth = min + range
-      eeType             EndEntityType DEFAULT {app}
-  }
+PsidGroupPermissions ::= SEQUENCE  {
+    subjectPermissions SubjectPermissions,
+    minChainLength     INTEGER DEFAULT 1,
+    chainLengthRange   INTEGER DEFAULT 0, 
+    eeType             EndEntityType DEFAULT {app}
+}
 
-  SequenceOfPsidGroupPermissions ::= SEQUENCE OF PsidGroupPermissions
+SequenceOfPsidGroupPermissions ::= SEQUENCE OF PsidGroupPermissions
 
-  SubjectPermissions ::= CHOICE {
-          explicit        SequenceOfPsidSspRange,
-          all             NULL,
-          ...
-  }
+SubjectPermissions ::= CHOICE  {
+    explicit        SequenceOfPsidSspRange,
+    all             NULL,
+    ...
+}
 
-  VerificationKeyIndicator ::= CHOICE {
-        verificationKey         PublicVerificationKey,
-        reconstructionValue     EccP256CurvePoint,
-        ...
-  }
-
-
+VerificationKeyIndicator ::= CHOICE  {
+    verificationKey         PublicVerificationKey,
+    reconstructionValue     EccP256CurvePoint,
+    ...
+}
   
 END
 
