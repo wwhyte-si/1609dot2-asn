@@ -1,0 +1,335 @@
+diff --git a/1609dot2-P2P.asn b/1609dot2-P2P.asn
+index 3dcb1e7..b4a9cf0 100755
+--- a/1609dot2-P2P.asn
++++ b/1609dot2-P2P.asn
+@@ -2,6 +2,8 @@ IEEE1609dot2-Peer2Peer {iso(1) identified-organization(3) ieee(111)
+ standards-association-numbered-series-standards(2) wave-stds(1609)  
+ dot2(2) management(2) peer-to-peer(1) major-version-2(2)}
+ 
++-- Minor version: 1
++
+ --********************************************************************** 
+ -- 
+ -- Data types for Peer-to-peer distribution of IEEE P1609.2 support data 
+@@ -39,3 +41,4 @@ Ieee1609dot2Peer2PeerPDU ::= SEQUENCE {
+ CaCertP2pPDU::= SEQUENCE OF Certificate
+ 
+ END
++
+diff --git a/1609dot2-base-types.asn b/1609dot2-base-types.asn
+index 795b1ec..233fdbf 100755
+--- a/1609dot2-base-types.asn
++++ b/1609dot2-base-types.asn
+@@ -8,9 +8,7 @@ dot2(2) base(1) base-types(2) major-version-2(2)}
+ --********************************************************************
+ --  IEEE P1609.2 Base Data Types 
+ -- 
+---******************************************************************** 
+-
+-DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
++--******************************************************************** DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+  
+ EXPORTS ALL;
+ 
+@@ -41,8 +39,10 @@ SequenceOfUint16 ::= SEQUENCE OF Uint16
+ Opaque ::= OCTET STRING
+ 
+   
++HashedId32 ::= OCTET STRING (SIZE(32))
+ HashedId10 ::= OCTET STRING (SIZE(10))
+ HashedId8  ::= OCTET STRING (SIZE(8))
++HashedId4  ::= OCTET STRING (SIZE(4))
+ HashedId3  ::= OCTET STRING (SIZE(3))
+ SequenceOfHashedId3 ::= SEQUENCE OF HashedId3
+ 
+@@ -173,7 +173,7 @@ Signature ::= CHOICE  {
+     ecdsaNistP256Signature        EcdsaP256Signature,
+     ecdsaBrainpoolP256r1Signature EcdsaP256Signature,
+     ...,
+-    ecdsaBrainpoolP384r1Signature EcdsaP384Signature
++    ecdsaBrainpoolP384r1Signature EcdsaP384Signature,
+ }
+ 
+ EcdsaP256Signature ::= SEQUENCE  {
+@@ -191,7 +191,7 @@ EccP256CurvePoint ::= CHOICE  {
+     fill             NULL,  -- consistency with 1363 / X9.62
+     compressed-y-0   OCTET STRING (SIZE (32)),
+     compressed-y-1   OCTET STRING (SIZE (32)),
+-    uncompressedP256 SEQUENCE  {
++    uncompressed     SEQUENCE  {
+         x OCTET STRING (SIZE (32)),
+         y OCTET STRING (SIZE (32))
+     }
+@@ -202,7 +202,7 @@ EccP384CurvePoint::= CHOICE  {
+       fill            NULL, -- consistency w 1363 / X9.62
+       compressed-y-0  OCTET STRING (SIZE (48)),
+       compressed-y-1  OCTET STRING (SIZE (48)),
+-    uncompressedP384 SEQUENCE  {
++      uncompressed    SEQUENCE  {
+           x OCTET STRING (SIZE (48)),
+           y OCTET STRING (SIZE (48))
+       }
+@@ -275,11 +275,15 @@ SequenceOfPsid ::= SEQUENCE OF Psid
+ ServiceSpecificPermissions ::= CHOICE  {
+     opaque              OCTET STRING (SIZE(0..MAX)),
+     ...,
+-    bitmapSsp           BitmapSsp
++    bitmapSsp           BitmapSsp,
+ }
+ 
+ BitmapSsp ::= OCTET STRING (SIZE(0..31))
+ 
++SspValue ::= OCTET STRING (SIZE(0..31))
++
++SspBitmask ::= OCTET STRING (SIZE(0..31))
++
+ PsidSspRange ::= SEQUENCE  {
+     psid                Psid,
+     sspRange            SspRange OPTIONAL
+@@ -291,12 +295,12 @@ SspRange ::= CHOICE  {
+     opaque              SequenceOfOctetString,
+     all                 NULL,
+     ... ,
+-    bitmapSspRange      BitmapSspRange
++    bitmapSspRange      BitmapSspRange,
+ }
+    
+ BitmapSspRange ::= SEQUENCE  {
+     sspValue            OCTET STRING (SIZE(1..32)),
+-    sspBitmask          OCTET STRING (SIZE(1..32))
++    sspBitmask          OCTET STRING (SIZE(1..32)),
+ }
+ 
+ SequenceOfOctetString ::= SEQUENCE (SIZE (0..MAX)) OF 
+diff --git a/1609dot2-schema.asn b/1609dot2-schema.asn
+index 7526120..96a78b7 100755
+--- a/1609dot2-schema.asn
++++ b/1609dot2-schema.asn
+@@ -1,8 +1,7 @@
+ IEEE1609dot2 {iso(1) identified-organization(3) ieee(111) 
+ standards-association-numbered-series-standards(2) wave-stds(1609)  
+-dot2(2) base(1) schema(1) major-version-2(2)}
++dot2(2) base(1) schema(1) major-version-2(2) minor-version-2(2)}
+ 
+--- Minor version: 1
+ 
+ --******************************************************************************
+ -- 
+@@ -17,13 +16,14 @@ EXPORTS ALL;
+ IMPORTS 
+   CrlSeries,
+   EccP256CurvePoint,
+-  EciesP256EncryptedKey,
++  EncryptedDataEncryptionKey,
+   EncryptionKey,
+   GeographicRegion,
+   GroupLinkageValue,
+   HashAlgorithm,
+   HashedId3,
+   HashedId8,
++  HashedId32,
+   Hostname,
+   IValue,
+   LinkageValue,
+@@ -60,13 +60,9 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
+ -- 
+ --*********************************************************************  
+ 
+--- Necessary to get certain tools to generate sample PDUs
+--- TestIeee1609Dot2Data ::= Ieee1609Dot2Data
+--- TestCertificate ::= Certificate
+-
+ -- this structure belongs later in the file but putting it here avoids
+ -- compiler errors with certain tools
+-SignedDataPayload ::= SEQUENCE  { 
++Signed¬Data¬Payload ::= SEQUENCE  { 
+     data              Ieee1609Dot2Data OPTIONAL,
+     extDataHash       HashedData OPTIONAL,
+     ...
+@@ -81,19 +77,20 @@ Ieee1609Dot2Data ::= SEQUENCE  {
+ 
+ Ieee1609Dot2Content ::=  CHOICE  { 
+     unsecuredData            Opaque, 
+-    signedData               SignedData,
++    signedData               Signed¬Data,
+     encryptedData            EncryptedData,
+     signedCertificateRequest Opaque,
+     ...
+ }
+ 
+-SignedData ::= SEQUENCE  { 
++Signed¬Data ::= SEQUENCE  { 
+     hashId          HashAlgorithm,
+     tbsData         ToBeSignedData,
+     signer          SignerIdentifier,
+     signature       Signature
+ }
+ 
++
+ SignerIdentifier ::= CHOICE  { 
+     digest          HashedId8,
+     certificate     SequenceOfCertificate,
+@@ -102,7 +99,7 @@ SignerIdentifier ::= CHOICE  {
+ }
+ 
+ ToBeSignedData ::= SEQUENCE  { 
+-    payload         SignedDataPayload,
++    payload         Signed¬Data¬Payload,
+     headerInfo      HeaderInfo
+ }
+ 
+@@ -121,7 +118,8 @@ HeaderInfo ::= SEQUENCE  {
+     encryptionKey          EncryptionKey OPTIONAL,
+     ...,
+     inlineP2pcdRequest     SequenceOfHashedId3 OPTIONAL,
+-    requestedCertificate   Certificate OPTIONAL
++    requestedCertificate   Certificate OPTIONAL,
++    pduFunctionalType      PduFunctionalType OPTIONAL
+ }
+ 
+ MissingCrlIdentifier ::= SEQUENCE  {
+@@ -130,6 +128,11 @@ MissingCrlIdentifier ::= SEQUENCE  {
+     ...
+ }
+ 
++PduFunctionalType ::= INTEGER (0..255)
++  tlsHandshake           PduFunctionalType ::= 1
++  iso21177ExtendedAuth   PduFunctionalType ::= 2
++
++
+ Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
+   content (WITH COMPONENTS {..., 
+     signedData  (WITH COMPONENTS {..., 
+@@ -190,11 +193,11 @@ EncryptedDataEncryptionKey ::= CHOICE  {
+ }
+ 
+ SymmetricCiphertext ::= CHOICE  {
+-    aes128ccm           AesCcmCiphertext,
++    aes128ccm           Aes128CcmCiphertext,
+     ...
+ }
+ 
+-AesCcmCiphertext ::= SEQUENCE  {
++Aes128CcmCiphertext ::= SEQUENCE  {
+     nonce           OCTET STRING (SIZE (12)),
+     ccmCiphertext   Opaque -- 16 bytes longer than plaintext
+ }
+@@ -284,7 +287,7 @@ LinkageData ::= SEQUENCE  {
+     group-linkage-value   GroupLinkageValue OPTIONAL
+ }
+          
+-EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8)) (ALL EXCEPT {})
++EndEntityType ::= BIT STRING {app (0), enroll (1) } (SIZE (8)) (ALL EXCEPT {})
+ 
+ PsidGroupPermissions ::= SEQUENCE  {
+     subjectPermissions SubjectPermissions,
+@@ -294,7 +297,6 @@ PsidGroupPermissions ::= SEQUENCE  {
+ }
+ 
+ SequenceOfPsidGroupPermissions ::= SEQUENCE OF PsidGroupPermissions
+-
+ SubjectPermissions ::= CHOICE  {
+     explicit        SequenceOfPsidSspRange,
+     all             NULL,
+diff --git a/crl-base-types.asn b/crl-base-types.asn
+index e2b4a59..54cc0aa 100755
+--- a/crl-base-types.asn
++++ b/crl-base-types.asn
+@@ -2,6 +2,8 @@ IEEE1609dot2CrlBaseTypes {iso(1) identified-organization(3) ieee(111)
+ standards-association-numbered-series-standards(2) wave-stds(1609)  
+ dot2(2) crl(3) base-types(2) major-version-2(2)}
+ 
++-- Minor version: 1
++
+ DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+ 
+ EXPORTS ALL;
+@@ -28,6 +30,7 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
+     dot2(2) base(1) base-types(2) major-version-2(2)}
+ ;
+ 
++
+ --
+ --
+ --  CRL contents
+@@ -37,7 +40,7 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
+ CrlContents ::= SEQUENCE  {
+     version            Uint8 (1),
+     crlSeries          CrlSeries,
+-    cracaId            HashedId8,
++    crlCraca            HashedId8,
+     issueDate          Time32,   
+     nextCrl            Time32,  
+     priorityInfo       CrlPriorityInfo,
+@@ -84,8 +87,7 @@ ToBeSignedLinkageValueCrl ::= SEQUENCE {
+ 
+ JMaxGroup ::= SEQUENCE  {
+     jmax              Uint8,
+-    contents          SequenceOfLAGroup,
+-    ...
++    contents          SequenceOfLAGroup
+ }
+ 
+ 
+@@ -128,3 +130,4 @@ GroupCrlEntry ::= SEQUENCE {
+ SequenceOfGroupCrlEntry ::= SEQUENCE OF GroupCrlEntry
+ 
+ END
++
+diff --git a/crl-protocol.asn b/crl-protocol.asn
+index 0c4b1b7..5e22748 100755
+--- a/crl-protocol.asn
++++ b/crl-protocol.asn
+@@ -2,6 +2,8 @@ IEEE1609dot2Crl {iso(1) identified-organization(3) ieee(111)
+ standards-association-numbered-series-standards(2) wave-stds(1609)  
+ dot2(2) crl(3) protocol(1) major-version-2(2) }
+ 
++-- Minor version: 1
++
+ DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+ 
+ EXPORTS ALL;
+@@ -26,7 +28,7 @@ FROM IEEE1609dot2CrlBaseTypes {iso(1) identified-organization(3) ieee(111)
+ 
+ ;
+ 
+-CrlPsid ::= Psid(256) -- PSID = 0x100, 0p8080
++CrlPsid ::= Psid(256)
+ 
+ SecuredCrl ::= Ieee1609Dot2Data (WITH COMPONENTS {..., 
+   content (WITH COMPONENTS {
+@@ -53,5 +55,5 @@ SecuredCrl ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
+   })
+ })
+ 
+-
+ END
++
+diff --git a/crl-ssp.asn b/crl-ssp.asn
+index 4f5c27a..e29eff8 100755
+--- a/crl-ssp.asn
++++ b/crl-ssp.asn
+@@ -2,6 +2,7 @@ IEEE1609dot2CrlSsp {iso(1) identified-organization(3) ieee(111)
+ standards-association-numbered-series-standards(2) wave-stds(1609)  
+ dot2(2) crl(3) service-specific-permissions(3) major-version-2(2)}
+ 
++
+ DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+ 
+ EXPORTS ALL;
+@@ -11,7 +12,7 @@ IMPORTS
+   Uint8
+ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
+     standards-association-numbered-series-standards(2) wave-stds(1609)  
+-    dot2(2) base(1) base-types(2)  major-version-2 (2)}
++    dot2(2) base(1) base-types(2)}
+ ;
+ 
+ 
+@@ -26,4 +27,6 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
+       
+ PermissibleCrls ::= SEQUENCE OF CrlSeries
+ 
++
+ END
++

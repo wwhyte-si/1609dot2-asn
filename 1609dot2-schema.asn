@@ -1,8 +1,7 @@
 IEEE1609dot2 {iso(1) identified-organization(3) ieee(111) 
 standards-association-numbered-series-standards(2) wave-stds(1609)  
-dot2(2) base(1) schema(1) major-version-2(2)}
+dot2(2) base(1) schema(1) major-version-2(2) minor-version-2(2)}
 
--- Minor version: 1
 
 --******************************************************************************
 -- 
@@ -17,13 +16,14 @@ EXPORTS ALL;
 IMPORTS 
   CrlSeries,
   EccP256CurvePoint,
-  EciesP256EncryptedKey,
+  EncryptedDataEncryptionKey,
   EncryptionKey,
   GeographicRegion,
   GroupLinkageValue,
   HashAlgorithm,
   HashedId3,
   HashedId8,
+  HashedId32,
   Hostname,
   IValue,
   LinkageValue,
@@ -49,7 +49,7 @@ IMPORTS
   ValidityPeriod
 FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
-    dot2(2) base(1) base-types(2) major-version-2 (2)}
+    dot2(2) base(1) base-types(2) major-version-2(2)}
 
 ;
 
@@ -60,13 +60,9 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 -- 
 --*********************************************************************  
 
--- Necessary to get certain tools to generate sample PDUs
--- TestIeee1609Dot2Data ::= Ieee1609Dot2Data
--- TestCertificate ::= Certificate
-
 -- this structure belongs later in the file but putting it here avoids
 -- compiler errors with certain tools
-SignedDataPayload ::= SEQUENCE  { 
+Signed¬Data¬Payload ::= SEQUENCE  { 
     data              Ieee1609Dot2Data OPTIONAL,
     extDataHash       HashedData OPTIONAL,
     ...
@@ -81,18 +77,19 @@ Ieee1609Dot2Data ::= SEQUENCE  {
 
 Ieee1609Dot2Content ::=  CHOICE  { 
     unsecuredData            Opaque, 
-    signedData               SignedData,
+    signedData               Signed¬Data,
     encryptedData            EncryptedData,
     signedCertificateRequest Opaque,
     ...
 }
 
-SignedData ::= SEQUENCE  { 
+Signed¬Data ::= SEQUENCE  { 
     hashId          HashAlgorithm,
     tbsData         ToBeSignedData,
     signer          SignerIdentifier,
     signature       Signature
 }
+
 
 SignerIdentifier ::= CHOICE  { 
     digest          HashedId8,
@@ -102,7 +99,7 @@ SignerIdentifier ::= CHOICE  {
 }
 
 ToBeSignedData ::= SEQUENCE  { 
-    payload         SignedDataPayload,
+    payload         Signed¬Data¬Payload,
     headerInfo      HeaderInfo
 }
 
@@ -121,7 +118,8 @@ HeaderInfo ::= SEQUENCE  {
     encryptionKey          EncryptionKey OPTIONAL,
     ...,
     inlineP2pcdRequest     SequenceOfHashedId3 OPTIONAL,
-    requestedCertificate   Certificate OPTIONAL
+    requestedCertificate   Certificate OPTIONAL,
+    pduFunctionalType      PduFunctionalType OPTIONAL
 }
 
 MissingCrlIdentifier ::= SEQUENCE  {
@@ -129,6 +127,11 @@ MissingCrlIdentifier ::= SEQUENCE  {
     crlSeries       CrlSeries,
     ...
 }
+
+PduFunctionalType ::= INTEGER (0..255)
+  tlsHandshake           PduFunctionalType ::= 1
+  iso21177ExtendedAuth   PduFunctionalType ::= 2
+
 
 Countersignature ::= Ieee1609Dot2Data (WITH COMPONENTS {...,
   content (WITH COMPONENTS {..., 
@@ -190,11 +193,11 @@ EncryptedDataEncryptionKey ::= CHOICE  {
 }
 
 SymmetricCiphertext ::= CHOICE  {
-    aes128ccm           AesCcmCiphertext,
+    aes128ccm           Aes128CcmCiphertext,
     ...
 }
 
-AesCcmCiphertext ::= SEQUENCE  {
+Aes128CcmCiphertext ::= SEQUENCE  {
     nonce           OCTET STRING (SIZE (12)),
     ccmCiphertext   Opaque -- 16 bytes longer than plaintext
 }
@@ -284,7 +287,7 @@ LinkageData ::= SEQUENCE  {
     group-linkage-value   GroupLinkageValue OPTIONAL
 }
          
-EndEntityType ::= BIT STRING {app (0), enrol (1) } (SIZE (8)) (ALL EXCEPT {})
+EndEntityType ::= BIT STRING {app (0), enroll (1) } (SIZE (8)) (ALL EXCEPT {})
 
 PsidGroupPermissions ::= SEQUENCE  {
     subjectPermissions SubjectPermissions,
@@ -294,7 +297,6 @@ PsidGroupPermissions ::= SEQUENCE  {
 }
 
 SequenceOfPsidGroupPermissions ::= SEQUENCE OF PsidGroupPermissions
-
 SubjectPermissions ::= CHOICE  {
     explicit        SequenceOfPsidSspRange,
     all             NULL,
