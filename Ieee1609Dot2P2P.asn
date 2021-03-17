@@ -27,7 +27,7 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
   Certificate
 FROM IEEE1609dot2 {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
-    dot2(2) base(1) schema(1) major-version-2(2)}
+    dot2(2) base(1) schema(1) major-version-2(2) minor-version-2(2)}
 ;
 
 Ieee1609dot2Peer2PeerPDU ::= SEQUENCE {

@@ -1,12 +1,11 @@
-<OssGuiProject product="ASN.1 Studio" version="2.0" productVersion="7.1">
+<OssGuiProject product="ASN.1 Studio" version="2.0" productVersion="10.0.1">
  <Asn1Files>
-  <File>1609dot2-base-types.asn</File>
-  <File>1609dot2-schema.asn</File>
-  <File>1609dot2-P2P.asn</File>
-  <File>crl-base-types.asn</File>
-  <File>wsa-ssp.asn</File>
-  <File>crl-ssp.asn</File>
-  <File>crl-protocol.asn</File>
+  <File>Ieee1609Dot2.asn</File>
+  <File>Ieee1609Dot2BaseTypes.asn</File>
+  <File>Ieee1609Dot2Crl.asn</File>
+  <File>Ieee1609Dot2CrlBaseTypes.asn</File>
+  <File>Ieee1609Dot2CrlSsp.asn</File>
+  <File>Ieee1609Dot2P2P.asn</File>
  </Asn1Files>
  <CompilerSettings/>
  <EncodingFiles>
@@ -14,7 +13,7 @@
  </EncodingFiles>
  <Settings>
   <Setting name="-coer"/>
-  <Setting present="false" name="-noRelaxedMode"/>
+  <Setting name="-noRelaxedMode" present="false"/>
   <Setting name="-oer"/>
   <Setting name="-root"/>
   <Setting name="AUTOMATIC_ENCDEC"/>

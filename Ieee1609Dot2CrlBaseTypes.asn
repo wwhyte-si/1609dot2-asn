@@ -25,7 +25,7 @@ IMPORTS
   Uint16, 
   Uint32,
   ValidityPeriod
-FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
+FROM Ieee1609Dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
     dot2(2) base(1) base-types(2) major-version-2(2)}
 ;

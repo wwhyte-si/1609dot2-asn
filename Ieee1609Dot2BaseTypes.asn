@@ -8,7 +8,9 @@ dot2(2) base(1) base-types(2) major-version-2(2)}
 --********************************************************************
 --  IEEE P1609.2 Base Data Types 
 -- 
---******************************************************************** DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
+--******************************************************************** 
+
+DEFINITIONS AUTOMATIC TAGS ::= BEGIN 
  
 EXPORTS ALL;
 
@@ -173,7 +175,7 @@ Signature ::= CHOICE  {
     ecdsaNistP256Signature        EcdsaP256Signature,
     ecdsaBrainpoolP256r1Signature EcdsaP256Signature,
     ...,
-    ecdsaBrainpoolP384r1Signature EcdsaP384Signature,
+    ecdsaBrainpoolP384r1Signature EcdsaP384Signature
 }
 
 EcdsaP256Signature ::= SEQUENCE  {
@@ -275,7 +277,7 @@ SequenceOfPsid ::= SEQUENCE OF Psid
 ServiceSpecificPermissions ::= CHOICE  {
     opaque              OCTET STRING (SIZE(0..MAX)),
     ...,
-    bitmapSsp           BitmapSsp,
+    bitmapSsp           BitmapSsp
 }
 
 BitmapSsp ::= OCTET STRING (SIZE(0..31))
@@ -295,12 +297,12 @@ SspRange ::= CHOICE  {
     opaque              SequenceOfOctetString,
     all                 NULL,
     ... ,
-    bitmapSspRange      BitmapSspRange,
+    bitmapSspRange      BitmapSspRange
 }
    
 BitmapSspRange ::= SEQUENCE  {
     sspValue            OCTET STRING (SIZE(1..32)),
-    sspBitmask          OCTET STRING (SIZE(1..32)),
+    sspBitmask          OCTET STRING (SIZE(1..32))
 }
 
 SequenceOfOctetString ::= SEQUENCE (SIZE (0..MAX)) OF 

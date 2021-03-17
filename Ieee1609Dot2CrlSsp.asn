@@ -1,4 +1,4 @@
-Ieee1609dot2CrlSsp {iso(1) identified-organization(3) ieee(111) 
+Ieee1609Dot2CrlSsp {iso(1) identified-organization(3) ieee(111) 
 standards-association-numbered-series-standards(2) wave-stds(1609)  
 dot2(2) crl(3) service-specific-permissions(3) major-version-2(2)}
 
@@ -10,9 +10,9 @@ EXPORTS ALL;
 IMPORTS 
   CrlSeries,
   Uint8
-FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
+FROM Ieee1609Dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
-    dot2(2) base(1) base-types(2)}
+    dot2(2) base(1) base-types(2) major-version-2(2)}
 ;
 
 

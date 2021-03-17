@@ -16,7 +16,7 @@ EXPORTS ALL;
 IMPORTS 
   CrlSeries,
   EccP256CurvePoint,
-  EncryptedDataEncryptionKey,
+  EciesP256EncryptedKey,
   EncryptionKey,
   GeographicRegion,
   GroupLinkageValue,
@@ -47,7 +47,7 @@ IMPORTS
   Uint16, 
   Uint32,
   ValidityPeriod
-FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
+FROM Ieee1609Dot2BaseTypes {iso(1) identified-organization(3) ieee(111) 
     standards-association-numbered-series-standards(2) wave-stds(1609)  
     dot2(2) base(1) base-types(2) major-version-2(2)}
 
@@ -62,7 +62,7 @@ FROM IEEE1609dot2BaseTypes {iso(1) identified-organization(3) ieee(111)
 
 -- this structure belongs later in the file but putting it here avoids
 -- compiler errors with certain tools
-Signed¬Data¬Payload ::= SEQUENCE  { 
+SignedDataPayload ::= SEQUENCE  { 
     data              Ieee1609Dot2Data OPTIONAL,
     extDataHash       HashedData OPTIONAL,
     ...
@@ -77,13 +77,13 @@ Ieee1609Dot2Data ::= SEQUENCE  {
 
 Ieee1609Dot2Content ::=  CHOICE  { 
     unsecuredData            Opaque, 
-    signedData               Signed¬Data,
+    signedData               SignedData,
     encryptedData            EncryptedData,
     signedCertificateRequest Opaque,
     ...
 }
 
-Signed¬Data ::= SEQUENCE  { 
+SignedData ::= SEQUENCE  { 
     hashId          HashAlgorithm,
     tbsData         ToBeSignedData,
     signer          SignerIdentifier,
@@ -99,7 +99,7 @@ SignerIdentifier ::= CHOICE  {
 }
 
 ToBeSignedData ::= SEQUENCE  { 
-    payload         Signed¬Data¬Payload,
+    payload         SignedDataPayload,
     headerInfo      HeaderInfo
 }
 
